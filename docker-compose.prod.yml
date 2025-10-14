@@ -1,0 +1,60 @@
+version: '3.3'
+
+services:
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.prod
+    command: gunicorn project.wsgi:application --bind 0.0.0.0:7000
+    container_name: backend-central-talentos
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+    expose:
+      - 7000
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - db
+    networks:
+      - internal
+      - net
+  db:
+    container_name: database-central-talentos
+    image: postgres:13.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.prod.db
+    networks:
+      - internal
+      - pgadmin-network
+    ports:
+      - "7001:7001"
+    command: -p 7001
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+    ports:
+      - 7002:80
+    depends_on:
+      - web
+    environment:
+      - VIRTUAL_HOST=homologacao.central-talentos.masdeveloper.com.br
+      - LETSENCRYPT_HOST=homologacao.central-talentos.masdeveloper.com.br
+    networks:
+      - net
+      - internal
+
+networks:
+  net:
+    external: true
+  internal:
+    external: false
+  pgadmin-network:
+    external: true
+
+
+volumes:
+  postgres_data:
+  static_volume:

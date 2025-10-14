@@ -1,0 +1,19 @@
+[run]
+omit =
+    */__init__.py
+    /migrations/
+    */tests/
+    */admin.py
+    */apps.py
+    */models.py
+    */urls.py
+    */responses.py
+    /models/
+
+[report]
+exclude_lines =
+    # Ignore standard "if __name__ == '__main__':" guard
+    if __name__ == .__main__.:
+    # Don't report on code that isn't relevant for coverage
+    def __repr__
+    def __str__

@@ -1,0 +1,25 @@
+./app/venv
+/app/venv/
+/app/venv
+app/venv/
+/media/
+/media
+media/
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+__pycache__/
+media/
+**/__pycache__/
+**/**/__pycache__/*/
+*.sqlite3
+.env
+.env.*
+.coverage
+.pytest_cache
+.cnf
+*.cnf
+
+app/workout/services/utils/models
