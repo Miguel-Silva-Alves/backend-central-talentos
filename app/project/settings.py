@@ -102,7 +102,9 @@ INSTALLED_APPS = [
     # Company
     'company',
     # AI
-    'ai'
+    'ai',
+    # RH
+    'rh',
 ]
 
 MIDDLEWARE = [
