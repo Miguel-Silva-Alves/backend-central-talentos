@@ -31,7 +31,7 @@ class File(models.Model):
         return f"{self.name} ({self.size_mb:.2f} MB)"
 
 
-class Certificate(models.Model):
+class Certificate(File):
     institution = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     date_issued = models.DateField()
@@ -48,7 +48,7 @@ class Certificate(models.Model):
         return f"{self.title} - {self.institution}"
 
 
-class Curriculum(models.Model):
+class Curriculum(File):
     qnt_historys = models.IntegerField(default=0)
     qnt_formations = models.IntegerField(default=0)
 
@@ -72,3 +72,58 @@ class Curriculum(models.Model):
 
     def __str__(self):
         return f"Curriculum (Histórias: {self.qnt_historys}, Formações: {self.qnt_formations})"
+
+class History(models.Model):
+    """
+    Experiências profissionais do currículo.
+    """
+    curriculum = models.ForeignKey(Curriculum, on_delete=models.CASCADE, related_name='histories')
+    company = models.CharField(max_length=255)
+    describe = models.TextField(blank=True, null=True)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True, null=True)
+    calculated_experience_time_months = models.PositiveIntegerField(default=0)
+
+    def calculate_experience_time(self):
+        """Calcula duração em meses."""
+        end = self.end_date or timezone.now().date()
+        return (end.year - self.start_date.year) * 12 + (end.month - self.start_date.month)
+
+    def is_current_job(self):
+        return self.end_date is None
+
+    def get_summary(self):
+        return f"{self.company} ({self.start_date:%Y} - {self.end_date:%Y if self.end_date else 'atual'})"
+
+    def save(self, *args, **kwargs):
+        self.calculated_experience_time_months = self.calculate_experience_time()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.company} - {self.describe[:40] if self.describe else ''}"
+
+
+class Formation(models.Model):
+    """
+    Formação acadêmica ou técnica do currículo.
+    """
+    curriculum = models.ForeignKey(Curriculum, on_delete=models.CASCADE, related_name='formations')
+    level = models.CharField(max_length=255)
+    status = models.CharField(max_length=100)
+    institution = models.CharField(max_length=255)
+    course = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True, null=True)
+
+    def is_completed(self):
+        return self.end_date is not None
+
+    def get_duration_years(self):
+        end = self.end_date or timezone.now().date()
+        return (end.year - self.start_date.year)
+
+    def get_summary(self):
+        return f"{self.course} - {self.institution}"
+
+    def __str__(self):
+        return f"{self.course} ({self.institution})"
