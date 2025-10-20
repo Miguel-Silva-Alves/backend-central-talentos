@@ -101,6 +101,8 @@ INSTALLED_APPS = [
     'rangefilter',
     # Company
     'company',
+    # AI
+    'ai'
 ]
 
 MIDDLEWARE = [
