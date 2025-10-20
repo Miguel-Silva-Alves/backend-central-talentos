@@ -124,7 +124,7 @@ class Profile(models.Model):
         help_text="Lista de habilidades principais separadas por vírgula."
     )
     candidates = models.ManyToManyField(
-        "candidate.Candidate",  # app_label.ModelName
+        Candidate,  # app_label.ModelName
         related_name="profiles",
         blank=True
     )
