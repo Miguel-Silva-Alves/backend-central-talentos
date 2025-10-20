@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from datetime import date
+from typing import List, Dict
 import re
 
 
@@ -158,7 +159,7 @@ class Profile(models.Model):
             self.top_skills = ", ".join(skills)
             self.save(update_fields=["top_skills"])
 
-    def list_skills(self) -> list[str]:
+    def list_skills(self) -> List[str]:
         """
         Retorna a lista de skills como uma lista Python.
         """
