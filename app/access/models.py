@@ -1,4 +1,4 @@
-import uuid
+from datetime import timedelta
 
 from django.utils import timezone
 from django.db import models
@@ -100,17 +100,19 @@ class GoogleAuthentication(Authentication):
     def __str__(self):
         return self.email
     
+def default_expiration():
+    return timezone.now() + timedelta(hours=1)
 class Token(models.Model):
     token = models.CharField(max_length=256) 
-    iat = models.DateTimeField()
-    expires_at = models.DateTimeField()
+    iat = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField(default=default_expiration)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+
     def is_valid(self):
         return self.expires_at > timezone.localtime(timezone.now())
     
     def __str__(self):
-        return self.iat.strftime('%d/%m/%y') + ' - ' + self.expires_at.strftime('%d/%m/%y')
+        return f"{self.iat.strftime('%d/%m/%y')} - {self.expires_at.strftime('%d/%m/%y')}"
     
 class RefreshToken(models.Model):
     refresh_token = models.CharField(max_length=256) 
