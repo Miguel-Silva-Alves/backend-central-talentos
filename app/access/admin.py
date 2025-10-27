@@ -1,5 +1,5 @@
 from django.contrib import admin
-from access.models import RefreshToken, Token, User, GoogleAuthentication, EmailPasswordAuthentication, RecuperarSenha, ValidateEmail
+from access.models import RefreshToken, Token, User, GoogleAuthentication, EmailPasswordAuthentication, RecoveryPassword, ValidateEmail
 from common.exportCSV import export_to_csv
 
 
@@ -40,5 +40,5 @@ admin.site.register(RefreshToken, RefreshTokenAdmin)
 admin.site.register(User,UserAdminCustom)
 admin.site.register(GoogleAuthentication)
 admin.site.register(EmailPasswordAuthentication)
-admin.site.register(RecuperarSenha, RecuperarSenhaAdmin)
+admin.site.register(RecoveryPassword, RecuperarSenhaAdmin)
 admin.site.register(ValidateEmail, ValidateEmailAdmin)

@@ -125,7 +125,7 @@ class RefreshToken(models.Model):
         return self.iat.strftime('%d/%m/%y') + ' - ' + self.expires_at.strftime('%d/%m/%y')
     
 
-class RecuperarSenha(models.Model):
+class RecoveryPassword(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     code = models.CharField(max_length=8)
