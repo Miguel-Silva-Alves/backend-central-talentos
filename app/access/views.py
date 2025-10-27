@@ -1,189 +1,208 @@
-from access.models import User, EmailPasswordAuthentication, GoogleAuthentication
-from django.utils import timezone
-
-# RestFramework
-from rest_framework.viewsets import ViewSet
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-
-# Swagger
+from rest_framework.response import Response
+from django.contrib.auth import authenticate
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
-
-#Responses
-from common.response import ResponseDefault, BadRequest, UnauthorizedRequest, CreatedRequest, InternalError, ForbiddenRequest
-from common.token import refresh_token
-from access.responses import CreateUserResponse, LoginResponse, RefreshResponse
+from drf_yasg import openapi
+from access.models import *
+from access.serializer import *
+import uuid
 
 # Validation
 from passlib.hash import django_pbkdf2_sha256 as handler
 
-# Logs
-from logs.views import saveLog
+# Common
+from common.token import TokenValidator
+from common.response import ResponseDefault, CreatedRequest, BadRequest, NotFound, UnauthorizedRequest
 
-# Code and Verify
-from common.response import ResponseDefault, BadRequest
-
-# Token
-from access.token import create_token
-
-#Serializer 
-from access.serializer import RegisterUserForm, RegisterLoginForm, RefreshTokenSerializer
-
-
-class RegisterUser(ViewSet):
-    serializer_class = RegisterUserForm
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
+    serializer_class = UserSerializer
 
-    def get_permissions(self):
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
-        permission_classes = []
-        if self.action == 'password':
-            permission_classes = [IsAuthenticated]
+    @TokenValidator.require_x_api_key
+    def list(self, request, *args, **kwargs):
+        users = self.get_queryset()
+        serializer = self.get_serializer(users, many=True)
+        return ResponseDefault("list of users", {"users": serializer.data})
 
-        return [permission() for permission in permission_classes]
-      
-    @swagger_auto_schema(request_body=RegisterUserForm, responses=CreateUserResponse, operation_description="Creates an user in the database.")
+    @TokenValidator.require_x_api_key
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            user = self.get_object()
+        except Exception:
+            return NotFound("user not found")
+        serializer = self.get_serializer(user)
+        return ResponseDefault("user retrieved", {"user": serializer.data})
+
+    @TokenValidator.require_x_api_key
     def create(self, request, *args, **kwargs):
-        serializer = RegisterUserForm(data=request.data)
-        
-    
-        return CreatedRequest(data={
-        })
+        try:
+            data = request.data.copy()
+            password = data.get("password")
 
-    def _loginGoogle(self, email, client_id, photo):
+            if not password:
+                return BadRequest("password is required")
+
+            data["password"] = handler.hash(password)
+
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return CreatedRequest({"user": serializer.data})
+
+            return BadRequest(serializer.errors)
+
+        except Exception as e:
+            return BadRequest(str(e))
+
+    @TokenValidator.require_token
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.serializer_class(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return ResponseDefault("user updated", {"user": serializer.data})
+        return BadRequest(serializer.errors)
+
+    @TokenValidator.require_token
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        user.delete()
+        return ResponseDefault("user deleted")
+
+    @TokenValidator.require_x_api_key
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Login com email e senha",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING),
+                'password': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+            required=['email', 'password']
+        ),
+        responses={200: TokenSerializer()}
+    )
+    @action(detail=False, methods=['post'], url_path='login')
+    def login(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
         user = User.objects.filter(email=email).first()
         if not user:
-            return UnauthorizedRequest("User not Found")
+            return UnauthorizedRequest('User with given email does not exist.')
         
-        # # Verifica se o estudante existe e se ele aceitou os termos
-        # student = Student.objects.filter(user=user).first()
-        # if student and not student.student_accepted_term:
-        #     return ForbiddenRequest(message="The student has not accepted the terms")
-
-        # # Verifica se existe uma anamnese para o estudante
-        # anamnese_exists = Anamnese.objects.filter(student=student).exists()
-        # if not anamnese_exists:
-        #     return ...
-
-        # # Verifica se a autenticação do Google já existe para o usuário
-        # exist = GoogleAuthentication.objects.filter(
-        #     user=user,
-        #     email=email,
-        #     client_id=client_id,
-        # ).exists()
-
-        # if exist:
-        #     # Gera e retorna o token, pois o usuário já possui autenticação configurada
-        #     token_has_created, token, rf_token = create_token(user)
-        #     if not token_has_created:
-        #         return BadRequest("Token not created")
-            
-        #     return ResponseDefault(data={
-        #         'username': user.username,
-        #         'user_id': user.pk,
-        #         'student_id': student.pk,
-        #         'is_staff': user.is_staff,
-        #         'anamnese': anamnese_exists,
-        #         'token': token.token,
-        #         'refresh_token': rf_token.refresh_token
-        #     })
+        if not handler.verify(password, user.password):
+            return UnauthorizedRequest("Invalid password.")
         
-        # # Cria uma nova autenticação do Google para o usuário
-        # GoogleAuthentication.objects.create(
-        #     user=user,
-        #     email=email,
-        #     client_id=client_id,
-        # )
+        # Find some token
+        token_user = Token.objects.filter(user=user).first()
+        if token_user and token_user.is_valid():
+            return ResponseDefault(data = TokenSerializer(token_user).data)
 
-        # # Atualiza a foto do estudante e o horário do último login do usuário
-        # student.photo = photo
-        # student.save()
-        # user.last_login = timezone.now()
-        # user.save(update_fields=['last_login'])
+        token = Token.objects.create(
+            token=str(uuid.uuid4()),
+            user=user
+        )
 
-        # # Gera e retorna o token
-        # token_has_created, token, rf_token = create_token(user)
-        # if not token_has_created:
-        #     return BadRequest("Token not created")
-        
-        # return ResponseDefault(data={
-        #     'username': user.username,
-        #     'user_id': user.pk,
-        #     'student_id': student.pk,
-        #     'is_staff': user.is_staff,
-        #     'anamnese': anamnese_exists,
-        #     'token': token.token,
-        #     'refresh_token': rf_token.refresh_token
-        # })
-        return ResponseDefault({})
+        return ResponseDefault(data = TokenSerializer(token).data)
 
+    @TokenValidator.require_x_api_key
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Login via Google (com client_id e sid)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING),
+                'client_id': openapi.Schema(type=openapi.TYPE_STRING),
+                'sid': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+            required=['email', 'client_id', 'sid']
+        ),
+        responses={200: TokenSerializer()}
+    )
+    @action(detail=False, methods=['post'], url_path='login/google')
+    def login_google(self, request):
+        email = request.data.get('email')
+        client_id = request.data.get('client_id')
+        sid = request.data.get('sid')
 
-    @swagger_auto_schema(request_body=RegisterLoginForm, responses=LoginResponse)
-    @action(detail=False, methods=['POST'], name='Login')
-    def login(self, request):
-        # serializer = RegisterLoginForm(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        # email = request.data.get('email', None)
-        # password = request.data.get('password', None)
-        # client_id = request.data.get('client_id', None)
-        # photo = request.data.get('photo', "")
-        
-        # if client_id:
-        #    #login com google
-        #    return self._loginGoogle(email, client_id, photo)
-        
-        # user = User.objects.filter(email=email).first()
-        # if user is None:
-        #     return UnauthorizedRequest(message="Invalid email or password")
+        google_auth, created = GoogleAuthentication.objects.get_or_create(
+            email=email,
+            defaults={'client_id': client_id, 'sid': sid, 'user': None}
+        )
 
-        # student = Student.objects.filter(user=user).first()
-        # if student and not student.student_accepted_term:
-        #     return ForbiddenRequest(message="The student has not accepted the terms")
-        # anamnese_exists = Anamnese.objects.filter(student=student).exists()
-        # try:                        
-        #     if password:
-        #         auth_entry = EmailPasswordAuthentication.objects.filter(user=user).first()
-        #         if not auth_entry or not handler.verify(password, auth_entry.password):
-        #             return BadRequest(message="Invalid email or password")
-                
-        #         token_has_created, token, rf_token = create_token(user)
-        #         if not token_has_created:
-        #             return BadRequest("Token not created")
-                        
-        #     user.last_login = timezone.now()
-        #     user.save(update_fields=['last_login'])
-            
-        #     return ResponseDefault(data={
-        #         'username': user.username,
-        #         'user_id': user.pk,
-        #         'student_id': student.pk,
-        #         'is_staff': user.is_staff,
-        #         'anamnese' : anamnese_exists,
-        #         'token': token.token,
-        #         'refresh_token': rf_token.refresh_token
-        #     })
-        # except Exception as e:
-        #     saveLog(msg=f'Login fails because {e}', type='Error', path="access/views.py line 234")
-        #     return InternalError(str(e))
-        return ResponseDefault()
+        user, _ = User.objects.get_or_create(email=email)
 
-        
-    @swagger_auto_schema(request_body=RefreshTokenSerializer, operation_description="Creates another token and refresh token if the refresh token is expirated.", responses=RefreshResponse)
-    @action(detail=False, methods=['POST'], name='RefreshToken')
-    def refresh(self,request):
-        
-        serializer = RefreshTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        token = request.data.get('token')
-        rf_token = request.data.get('refresh_token')
+        token = Token.objects.create(
+            token=str(uuid.uuid4()),
+            iat=timezone.now(),
+            expires_at=timezone.now() + timezone.timedelta(hours=1),
+            user=user
+        )
 
-        valid, tk , rft = refresh_token(token, rf_token)
-        if not valid:
-            return BadRequest('Token or Refresh Token is not valid, please login again')
-        
-        return ResponseDefault(data={'token': tk.token, 'refresh_token':rft.refresh_token})
-        
-    
+        return Response(TokenSerializer(token).data, status=status.HTTP_200_OK)
+
+    @TokenValidator.require_x_api_key
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Solicitar código de recuperação de senha",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+            required=['email']
+        ),
+        responses={200: 'Código enviado'}
+    )
+    @action(detail=False, methods=['post'], url_path='password/request')
+    def request_password_reset(self, request):
+        email = request.data.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'detail': 'Usuário não encontrado.'}, status=404)
+
+        code = str(uuid.uuid4())[:8]
+        RecoveryPassword.objects.create(user=user, code=code, is_active=True)
+
+        # Aqui você pode enviar o código por e-mail
+        return Response({'detail': f'Código de recuperação gerado: {code}'}, status=200)
+
+    @TokenValidator.require_x_api_key
+    @swagger_auto_schema(
+        method='post',
+        operation_description="Alterar senha com código de recuperação",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING),
+                'code': openapi.Schema(type=openapi.TYPE_STRING),
+                'new_password': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+            required=['email', 'code', 'new_password']
+        ),
+        responses={200: 'Senha alterada com sucesso'}
+    )
+    @action(detail=False, methods=['post'], url_path='password/reset')
+    def reset_password(self, request):
+        email = request.data.get('email')
+        code = request.data.get('code')
+        new_password = request.data.get('new_password')
+
+        try:
+            user = User.objects.get(email=email)
+            recovery = RecoveryPassword.objects.filter(user=user, code=code, is_active=True).last()
+            if not recovery or not recovery.is_valid():
+                return Response({'detail': 'Código inválido ou expirado.'}, status=400)
+        except User.DoesNotExist:
+            return Response({'detail': 'Usuário não encontrado.'}, status=404)
+
+        user.set_password(new_password)
+        user.save()
+        recovery.invalidate()
+
+        return Response({'detail': 'Senha alterada com sucesso.'}, status=200)
