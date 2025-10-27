@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-
+import os
 
 class File(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -29,6 +29,18 @@ class File(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.size_mb:.2f} MB)"
+
+    def process_file(self, file_path: str) -> dict:
+        """
+        Função auxiliar para processar o arquivo.
+        Aqui você pode extrair dados específicos (ex: CSV, PDF, Excel, etc.).
+        """
+        # Exemplo de extração: só devolve metadados simples
+        return {
+            "path": file_path,
+            "extension": os.path.splitext(file_path)[1],
+            "processed_at": timezone.now().isoformat()
+        }
 
 
 class Certificate(File):
