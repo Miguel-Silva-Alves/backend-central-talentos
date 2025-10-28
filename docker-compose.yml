@@ -1,9 +1,9 @@
-version: '3'
+version: '3.3'
 
 services:
   web:
     build: ./app
-    command: python manage.py runserver 0.0.0.0:8854
+    command: python manage.py runserver 0.0.0.0:8854 --verbosity 2
     container_name: backend-central-talentos
     volumes:
       - ./app/:/usr/src/app/

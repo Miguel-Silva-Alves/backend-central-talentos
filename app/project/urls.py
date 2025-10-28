@@ -12,7 +12,7 @@ from common.swagger import BothHttpAndHttpsSchemaGenerator
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="Mas Developer API",
+      title="Central de Talentos API",
       default_version='v1',
       description="Aplicação Backend para servir de suporte para as aplicações da Central de Talentos",
       terms_of_service="https://www.google.com/policies/terms/",
