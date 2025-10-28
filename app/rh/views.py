@@ -45,6 +45,7 @@ class FileViewSet(viewsets.ModelViewSet):
         responses={200: openapi.Response('Upload concluído')}
     )
     @action(detail=False, methods=['post'], url_path='upload')
+    @TokenValidator.require_token
     def upload(self, request):
         # Verifica se veio um arquivo
         uploaded_file = request.FILES.get('file')
