@@ -34,6 +34,12 @@ urlpatterns = [
     
     # Access
     path('access/', include('access.urls')),
+
+    # RH
+    path('rh/', include('rh.urls')),
+
+    # AI
+    path('ai/', include('ai.urls')),
 ]
 
 # Swagger

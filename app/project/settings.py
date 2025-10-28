@@ -37,10 +37,10 @@ LOGGING = {
             'filename': os.path.join(LOGGING_DIR, 'django.log'),
             'formatter': 'verbose',
         },
-        # 'console': {  # opcional, para ver no terminal
-        #     'class': 'logging.StreamHandler',
-        #     'formatter': 'verbose',
-        # },
+        'console': {  # opcional, para ver no terminal
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'django': {
