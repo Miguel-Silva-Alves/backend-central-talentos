@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 import os
 
+from rh.pdf_extractor import PDFExtractor
+
 class File(models.Model):
     id = models.BigAutoField(primary_key=True)
     date_upload = models.DateTimeField(default=timezone.now)
@@ -35,12 +37,22 @@ class File(models.Model):
         Função auxiliar para processar o arquivo.
         Aqui você pode extrair dados específicos (ex: CSV, PDF, Excel, etc.).
         """
-        # Exemplo de extração: só devolve metadados simples
-        return {
+        
+        extractor = PDFExtractor(file_path)
+        data = {
             "path": file_path,
             "extension": os.path.splitext(file_path)[1],
-            "processed_at": timezone.now().isoformat()
+            "processed_at": timezone.now().isoformat(),
+            "pdf_with_text": extractor.pdf_with_text(),
         }
+        if data["pdf_with_text"]:
+            info = extractor.extract_resume_info()
+            data["info"] = info
+
+            # Enttities
+            entities = extractor.extract_entities()
+            data["entities"] = entities
+        return data
 
 
 class Certificate(File):

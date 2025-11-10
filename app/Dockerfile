@@ -1,14 +1,10 @@
-# Pull official base image
-FROM python:3.9.6-slim
+FROM python:3.11-slim
 
-# Set work directory
 WORKDIR /usr/src/app
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -18,26 +14,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmariadb-dev-compat \
     libmariadb-dev \
     clang \
-    netcat \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-
-# Upgrade pip
 RUN pip install --upgrade pip
 
-# Copy requirements.txt
-COPY ./requirements.txt .
-
-# Install Python dependencies
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Copy entrypoint.sh
-COPY ./entrypoint.sh .
-RUN sed -i 's/\r$//g' ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+# ✅ COPY do modelo spaCy .tar.gz
+COPY ./pt_core_news_sm-3.6.0.tar.gz /usr/src/app/
 
-# Copy project files
+# ✅ Instalar o modelo manualmente
+RUN pip install pt_core_news_sm-3.6.0.tar.gz
+
+# copy entrypoint.sh
+COPY ./entrypoint.sh .
+RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
+RUN chmod +x /usr/src/app/entrypoint.sh
+
+# copy project
 COPY . .
 
-# Run entrypoint.sh
-ENTRYPOINT ["./entrypoint.sh"]
+
+# run entrypoint.sh
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

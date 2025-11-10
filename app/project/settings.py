@@ -15,51 +15,6 @@ import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-# Path para os arquivos de log
-LOGGING_DIR = os.path.join(BASE_DIR, 'logs')
-
-if not os.path.exists(LOGGING_DIR):
-    os.makedirs(LOGGING_DIR)
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(LOGGING_DIR, 'django.log'),
-            'formatter': 'verbose',
-        },
-        'console': {  # opcional, para ver no terminal
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        # 'django.db.backends': {  # <--- Logger para queries SQL
-        #     'handlers': ['file', 'console'],
-        #     'level': 'DEBUG',
-        #     'propagate': False,
-        # },
-        '': {  # Root logger
-            'handlers': ['file'],
-            'level': 'INFO',
-        },
-    },
-}
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/

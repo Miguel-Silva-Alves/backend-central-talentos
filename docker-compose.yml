@@ -3,12 +3,12 @@ version: '3.3'
 services:
   web:
     build: ./app
-    command: python manage.py runserver 0.0.0.0:8854 --verbosity 2
+    command: python manage.py runserver 0.0.0.0:8000 --verbosity 2
     container_name: backend-central-talentos
     volumes:
       - ./app/:/usr/src/app/
     ports:
-      - 8854:8854
+      - 8000:8000
     env_file:
       - ./.env.dev
     depends_on:
