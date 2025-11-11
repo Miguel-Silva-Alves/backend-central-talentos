@@ -72,3 +72,7 @@ annotated-types==0.6.0
 # ✅ Typing Extensions compatível com Pydantic 1.10
 typing-extensions==4.7.1
 numpy==1.26.4
+
+# Tests
+coverage
+factory-boy

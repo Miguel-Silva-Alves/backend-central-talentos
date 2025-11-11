@@ -16,3 +16,7 @@ django-admin startapp name-of-app
 
 ## Testes
 [Guia de Execução dos Testes Automatizados](docs/tests.md)
+
+- Running 1 test:
+- docker-compose run --rm tests coverage run manage.py test access.tests.UserViewSetTest.test_list_users_success
+

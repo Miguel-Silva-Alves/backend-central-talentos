@@ -129,10 +129,22 @@ class UserViewSet(viewsets.ModelViewSet):
         client_id = request.data.get('client_id')
         sid = request.data.get('sid')
 
-        google_auth, created = GoogleAuthentication.objects.get_or_create(
-            email=email,
-            defaults={'client_id': client_id, 'sid': sid, 'user': None}
-        )
+        try:
+            google_auth = GoogleAuthentication.objects.get(sid=sid)
+            user = google_auth.user
+
+        except GoogleAuthentication.DoesNotExist:
+            # ✅ Criar novo usuário
+            user = User.objects.create(
+                username=email.split("@")[0],
+                email=email
+            )
+
+            google_auth = GoogleAuthentication.objects.create(
+                sid=sid,
+                email=email,
+                user=user,  # ✅ AGORA TEM USER!
+            )
 
         user, _ = User.objects.get_or_create(email=email)
 
