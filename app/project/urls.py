@@ -40,6 +40,9 @@ urlpatterns = [
 
     # AI
     path('ai/', include('ai.urls')),
+
+    # Company
+    path('company/', include('company.urls')),
 ]
 
 # Swagger
