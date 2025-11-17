@@ -34,14 +34,21 @@ class QuerieViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='prompt')
     @TokenValidator.require_token
     def prompt(self, request):
-        # Verifica se veio uma prompt
         prompt_text = request.data.get('prompt')
+
         if not prompt_text:
             return BadRequest("Nenhum prompt enviado.")
+        
+        try:
+            Queries.objects.create(
+                ask=prompt_text,
+                user=request.user
+            )
+        except Exception as e:
+            return BadRequest(message=e)
 
         return ResponseDefault(
             message="Query processed",
-            data={
-                "query": prompt_text,
-            }
+            data={"query": prompt_text}
         )
+

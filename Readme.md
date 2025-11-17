@@ -20,3 +20,6 @@ django-admin startapp name-of-app
 - Running 1 test:
 - docker-compose run --rm tests coverage run manage.py test access.tests.UserViewSetTest.test_list_users_success
 
+### Gerar relatório
+- docker-compose run --rm tests coverage html
+
