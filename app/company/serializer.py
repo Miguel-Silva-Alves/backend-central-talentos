@@ -1,4 +1,11 @@
-from rest_framework.serializers import Serializer
+from rest_framework import serializers
+from .models import Candidate
 
-class CandidateSerializer(Serializer):
-    pass
+
+class CandidateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Candidate
+        fields = [
+            "id", "name", "email", "birth_date", "current_position",
+            "years_experience", "location", "phone"
+        ]
