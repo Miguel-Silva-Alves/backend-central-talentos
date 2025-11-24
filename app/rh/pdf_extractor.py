@@ -22,7 +22,7 @@ class PDFExtractor:
     def extract_entities(self):
         """Extrai entidades genéricas via spaCy"""
         doc = self.nlp(self.text)
-        entities = [(ent.text, ent.label_) for ent in doc.ents]
+        entities = [ent.text for ent in doc.ents]
         return entities
 
     def extract_email(self):

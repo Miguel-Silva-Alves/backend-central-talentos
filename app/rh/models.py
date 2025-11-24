@@ -10,6 +10,10 @@ class File(models.Model):
     name = models.CharField(max_length=255)
     size_mb = models.FloatField()
     processed = models.BooleanField(default=False)
+    full_text = models.TextField(null=True, blank=True)
+    word_cloud = models.JSONField(blank=True, null=True)
+     # vetor de embedding (lista de floats)
+    embedding = models.JSONField(null=True, blank=True)
 
     def mark_processed(self):
         """Marca o arquivo como processado."""

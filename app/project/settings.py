@@ -164,5 +164,27 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # DATE_INPUT_FORMATS = ['%d-%m-%Y'] #---> mexer no formato das datas
 
 CORS_ALLOW_ALL_ORIGINS = True  # REMOVE THAT IN SOON !!!!!!
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",     # backend (não necessário, mas ok)
+    "http://localhost:3000",     # se usar React
+    "http://localhost:5173",     # vite
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:8080",
+    "http://localhost:4350",     # Flutter web default
+]
+
+CORS_ALLOW_HEADERS = [
+    '*'
+]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+]
 
 X_API_KEY = os.environ.get("X_API_KEY", SECRET_KEY)
