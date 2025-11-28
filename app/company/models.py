@@ -182,3 +182,24 @@ class Profile(models.Model):
         Retorna a lista de candidatos associados ao perfil.
         """
         return self.candidates.all()
+
+class FileCandidate(models.Model):
+    """
+    Liga arquivos já processados ao candidato.
+    """
+    candidate = models.ForeignKey(
+        "company.Candidate",
+        on_delete=models.CASCADE,
+        related_name="files"
+    )
+
+    file = models.ForeignKey(
+        "rh.File",
+        on_delete=models.CASCADE,
+        related_name="candidates"
+    )
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.file.name} -> {self.candidate.name}"
