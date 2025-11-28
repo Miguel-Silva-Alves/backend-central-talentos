@@ -4,7 +4,6 @@ from company.models import Candidate
 import numpy as np
 from numpy.linalg import norm
 from django.db import models
-from django.contrib.auth.models import User
 from django.db.models import JSONField
 
 from rh.models import File  # seu modelo de arquivos

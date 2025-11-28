@@ -33,6 +33,24 @@ services:
     ports:
       - "8855:8855"
 
+  # NOVO SERVIÇO PARA TESTES
+  tests:
+    build: ./app
+    # Este comando irá rodar os testes e gerar o relatório
+    # O `--fail-fast` é útil para parar no primeiro erro
+    command: sh -c "coverage run manage.py test access && coverage html"
+    volumes:
+      - ./app/:/usr/src/app/ # Mapeia para que os relatórios fiquem na sua máquina
+    env_file:
+      - ./.env.dev # Use o mesmo arquivo de ambiente ou um específico para testes
+    depends_on:
+      - db # Garante que o banco de dados esteja pronto
+    networks:
+      - internal
+    # entrypoint: sh -c "sleep 10 && ..." # Pode ser necessário para esperar o DB iniciar completamente
+    # remove o container após a execução
+    tty: true # Garante que o output seja exibido corretamente
+
 volumes:
   mysql_data:
 

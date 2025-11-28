@@ -23,22 +23,12 @@ class CandidateViewSet(viewsets.ModelViewSet):
         return ResponseDefault("candidate retrieved", {"candidate": serializer.data})
 
 
-    @TokenValidator.require_x_api_key
+    @TokenValidator.require_token
     def list(self, request, *args, **kwargs):
         result = []
+        candidates = Candidate.objects.filter(user_creator__company=request.user.company)
 
-        for cand in self.get_queryset():
-            # pega os FileCandidate relacionados
-            file_links = FileCandidate.objects.filter(candidate=cand)
-
-            files_json = []
-            for link in file_links:
-                f = link.file
-                files_json.append({
-                    "id": f.pk,
-                    "name": f.name,
-                    "uploaded_at": link.uploaded_at.isoformat(),
-                })
+        for cand in candidates:
 
             # monta o candidato manualmente
             result.append({
@@ -50,7 +40,7 @@ class CandidateViewSet(viewsets.ModelViewSet):
                 "years_experience": cand.years_experience,
                 "location": cand.location,
                 "phone": cand.phone,
-                "files": files_json,
+                "candidate_description": cand.profile_summary(),
             })
 
         return ResponseDefault("list of candidates", {"candidates": result})

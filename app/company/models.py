@@ -63,12 +63,13 @@ class Candidate(models.Model):
     """
 
     name = models.CharField(max_length=255)
-    birth_date = models.DateField()
+    birth_date = models.DateField(blank=True, null=True)
     current_position = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(
-        max_length=20,
-        validators=[RegexValidator(r'^\+?\d{8,15}$', 'Número de telefone inválido.')]
+        max_length=50,
+        blank=True,
+        null=True,
     )
     years_experience = models.PositiveIntegerField(default=0)
     location = models.CharField(max_length=255, blank=True, null=True)
@@ -88,6 +89,8 @@ class Candidate(models.Model):
         """
         Retorna a idade atual do candidato com base na data de nascimento.
         """
+        if self.birth_date is None:
+            return 0
         today = date.today()
         age = today.year - self.birth_date.year
         if (today.month, today.day) < (self.birth_date.month, self.birth_date.day):
@@ -106,11 +109,8 @@ class Candidate(models.Model):
         """
         Retorna um resumo textual do perfil do candidato.
         """
-        return (
-            f"{self.name}, {self.get_age()} anos, "
-            f"{self.years_experience} anos de experiência — "
-            f"atualmente em '{self.current_position or 'sem posição atual'}'."
-        )
+        return f"{self.name}, {self.get_age()} anos, {self.years_experience} anos de experiência — atualmente em '{self.current_position or 'sem posição atual'}'."
+        
 
 class Profile(models.Model):
     """

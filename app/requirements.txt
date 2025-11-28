@@ -54,9 +54,10 @@ celery==5.5.2
 redis==5.2.1
 django-redis==5.4.0
 pandas
-sentence-transformers>=2.7.0
 huggingface_hub>=0.14.1,<1.0.0
-torch>=2.1
+sentence-transformers==2.5.1
+transformers==4.40.2
+torch==2.1.2
 pypdf2==3.0.1
 smart-open==6.4.0
 

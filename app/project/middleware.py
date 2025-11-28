@@ -211,13 +211,14 @@ class RequestDebugMiddleware(MiddlewareMixin):
                     )
             except Exception as db_error:
                 # Se falhar ao salvar no banco, só loga o erro
-                logger.error(f"Failed to save RequestDebugLog to database: {str(db_error)}")
+                # logger.error(f"Failed to save RequestDebugLog to database: {str(db_error)}")
+                pass
             
             # Loga as informações no console/arquivo
-            logger.log(
-                log_level,
-                f"{log_message}\nRequest Details: {json.dumps(request_info, indent=2, ensure_ascii=False)}"
-            )
+            # logger.log(
+            #     log_level,
+            #     f"{log_message}\nRequest Details: {json.dumps(request_info, indent=2, ensure_ascii=False)}"
+            # )
             
         except Exception as e:
             # Fallback caso o próprio middleware falhe

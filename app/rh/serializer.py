@@ -7,6 +7,7 @@ class FileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = File
+        ref_name = "RHFile"
         fields = [
             "pk",
             "name",

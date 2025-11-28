@@ -2,40 +2,33 @@ FROM python:3.11-slim
 
 WORKDIR /usr/src/app
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
+# Dependências do sistema (mais enxutas)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    gcc \
-    g++ \
-    python3-dev \
     libpq-dev \
     libmariadb-dev-compat \
     libmariadb-dev \
-    clang \
     netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
+# Melhorar pip
 RUN pip install --upgrade pip
 
+# Copiar requirements antes — MELHORA O CACHE
 COPY requirements.txt .
-RUN pip install -r requirements.txt
 
-# ✅ COPY do modelo spaCy .tar.gz
-COPY ./pt_core_news_sm-3.6.0.tar.gz /usr/src/app/
+# Instalar deps Python
+RUN pip install --no-cache-dir -r requirements.txt
 
-# ✅ Instalar o modelo manualmente
-RUN pip install pt_core_news_sm-3.6.0.tar.gz
+# Instalar modelo spaCy sem perder cache
+COPY pt_core_news_sm-3.6.0.tar.gz .
+RUN pip install --no-cache-dir pt_core_news_sm-3.6.0.tar.gz
 
-# copy entrypoint.sh
-COPY ./entrypoint.sh .
-RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
-RUN chmod +x /usr/src/app/entrypoint.sh
+# Entrypoint
+COPY entrypoint.sh .
+RUN sed -i 's/\r$//g' entrypoint.sh && chmod +x entrypoint.sh
 
-# copy project
+# Copiar o restante do projeto
 COPY . .
 
-
-# run entrypoint.sh
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]

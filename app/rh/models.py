@@ -4,15 +4,22 @@ import os
 
 from rh.pdf_extractor import PDFExtractor
 
+# Common
+from common.embedding import create_embedding
+
 class File(models.Model):
     id = models.BigAutoField(primary_key=True)
     date_upload = models.DateTimeField(default=timezone.now)
     name = models.CharField(max_length=255)
     size_mb = models.FloatField()
     processed = models.BooleanField(default=False)
+
     full_text = models.TextField(null=True, blank=True)
+
+    # word_cloud AGORA vai guardar as entities extraídas
     word_cloud = models.JSONField(blank=True, null=True)
-     # vetor de embedding (lista de floats)
+
+    # vetor de embedding (lista de floats)
     embedding = models.JSONField(null=True, blank=True)
 
     def mark_processed(self):
@@ -38,24 +45,43 @@ class File(models.Model):
 
     def process_file(self, file_path: str) -> dict:
         """
-        Função auxiliar para processar o arquivo.
-        Aqui você pode extrair dados específicos (ex: CSV, PDF, Excel, etc.).
+        Processa o arquivo PDF e extrai:
+        - full_text
+        - entities (word_cloud)
+        - embedding
         """
-        
+
         extractor = PDFExtractor(file_path)
+
         data = {
             "path": file_path,
             "extension": os.path.splitext(file_path)[1],
             "processed_at": timezone.now().isoformat(),
             "pdf_with_text": extractor.pdf_with_text(),
         }
+
         if data["pdf_with_text"]:
+            # Informações gerais (currículo)
             info = extractor.extract_resume_info()
             data["info"] = info
 
-            # Enttities
+            # Entities
             entities = extractor.extract_entities()
             data["entities"] = entities
+
+            # Salvamos entities como word_cloud
+            self.word_cloud = entities
+
+            # Texto completo
+            self.full_text = extractor.text
+
+            # Embedding a partir do texto completo
+            self.embedding = create_embedding(self.full_text)
+
+            # marca como processado
+            self.processed = True
+            self.save()
+
         return data
 
 
