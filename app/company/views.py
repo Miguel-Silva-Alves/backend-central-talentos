@@ -54,7 +54,7 @@ class CandidateViewSet(viewsets.ModelViewSet):
                 "phone": cand.phone,
                 "candidate_description": cand.profile_summary(),
                 "key_skills": cand.key_skills(),
-                "files": data_files,
+                "files_uploaded": data_files,
             })
 
         return ResponseDefault("list of candidates", {"candidates": result})
