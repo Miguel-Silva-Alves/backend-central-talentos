@@ -30,6 +30,18 @@ class CandidateViewSet(viewsets.ModelViewSet):
 
         for cand in candidates:
 
+            files = FileCandidate.objects.filter(candidate=cand)
+
+            data_files = [
+                {
+                    "id": fc.file.id,
+                    "name": fc.file.name,
+                    "size_mb": fc.file.size_mb,
+                    "download_url": fc.file.download_url,   # <- agora funciona
+                }
+                for fc in files
+            ]
+
             # monta o candidato manualmente
             result.append({
                 "id": cand.id,
@@ -41,6 +53,8 @@ class CandidateViewSet(viewsets.ModelViewSet):
                 "location": cand.location,
                 "phone": cand.phone,
                 "candidate_description": cand.profile_summary(),
+                "key_skills": cand.key_skills(),
+                "files": data_files,
             })
 
         return ResponseDefault("list of candidates", {"candidates": result})

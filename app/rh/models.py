@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 import os
 
+from project import settings
 from rh.pdf_extractor import PDFExtractor
 
 # Common
@@ -83,6 +84,10 @@ class File(models.Model):
             self.save()
 
         return data
+
+    @property
+    def download_url(self):
+        return f"{settings.BASE_URL}/media/uploads/{self.name}"
 
 
 class Certificate(File):

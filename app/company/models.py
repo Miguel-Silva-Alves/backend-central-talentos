@@ -110,6 +110,18 @@ class Candidate(models.Model):
         Retorna um resumo textual do perfil do candidato.
         """
         return f"{self.name}, {self.get_age()} anos, {self.years_experience} anos de experiência — atualmente em '{self.current_position or 'sem posição atual'}'."
+
+    def key_skills(self) -> List[str]:
+        """
+        Retorna uma lista das principais habilidades do candidato
+        com base nos perfis vinculados.
+        """
+        skills = set()
+        file_candidates = FileCandidate.objects.filter(candidate=self)
+
+        for files in file_candidates:
+            skills.update(files.file.word_cloud)
+        return list(skills)
         
 
 class Profile(models.Model):

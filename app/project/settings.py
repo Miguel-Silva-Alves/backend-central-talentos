@@ -188,3 +188,6 @@ CORS_ALLOW_METHODS = [
 ]
 
 X_API_KEY = os.environ.get("X_API_KEY", SECRET_KEY)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+BASE_URL = "http://127.0.0.1:8000"  # coloque sua URL real

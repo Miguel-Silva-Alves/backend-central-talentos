@@ -6,6 +6,7 @@ from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
+from project import settings
 from rh.models import File
 from rh.serializer import FileSerializer
 
@@ -74,7 +75,7 @@ class FileViewSet(viewsets.ModelViewSet):
         )
 
         # salva fisicamente
-        upload_dir = "uploads"
+        upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
         os.makedirs(upload_dir, exist_ok=True)
 
         file_path = os.path.join(upload_dir, file_name)
