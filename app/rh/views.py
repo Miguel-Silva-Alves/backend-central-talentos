@@ -12,6 +12,7 @@ from rh.serializer import FileSerializer
 
 from common.token import TokenValidator
 from common.response import ResponseDefault, NotFound, UnauthorizedRequest
+from external.gpt import GPTClient
 
 import os
 
@@ -86,6 +87,10 @@ class FileViewSet(viewsets.ModelViewSet):
 
         # processa arquivo
         extracted_info = file_obj.process_file(file_path)
+
+        # GPT EXTRACTION
+        info_gpt = GPTClient().extract(file_obj.full_text)
+        extracted_info["gpt_info"] = info_gpt
 
         # marca como processado
         file_obj.processed = True

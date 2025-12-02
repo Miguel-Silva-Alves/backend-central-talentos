@@ -19,6 +19,7 @@ COPY requirements.txt .
 
 # Instalar deps Python
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install openai
 
 # Instalar modelo spaCy sem perder cache
 COPY pt_core_news_sm-3.6.0.tar.gz .
