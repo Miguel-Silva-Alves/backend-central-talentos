@@ -33,6 +33,7 @@ class CandidateSerializer(serializers.ModelSerializer):
             "location",
             "phone",
             "files",
+            "profile_resume"
         ]
         read_only_fields = ["files"]
 

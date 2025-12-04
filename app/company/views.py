@@ -80,6 +80,7 @@ class CandidateViewSet(viewsets.ModelViewSet):
             location=serializer.validated_data.get("location"),
             phone=serializer.validated_data["phone"],
             user_creator=request.user,  # vem do token
+            profile_resume=serializer.validated_data["profile_resume"],
         )
 
         # 3️⃣ Vincula arquivos (regra de negócio → view)

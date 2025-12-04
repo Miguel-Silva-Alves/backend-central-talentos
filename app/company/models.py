@@ -79,6 +79,7 @@ class Candidate(models.Model):
         on_delete=models.CASCADE,
         related_name="candidates_created"
     )
+    profile_resume = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -109,7 +110,10 @@ class Candidate(models.Model):
         """
         Retorna um resumo textual do perfil do candidato.
         """
-        return f"{self.name}, {self.get_age()} anos, {self.years_experience} anos de experiência — atualmente em '{self.current_position or 'sem posição atual'}'."
+        if not self.profile_resume:
+            self.profile_resume = f"{self.name}, {self.get_age()} anos, {self.years_experience} anos de experiência — atualmente em '{self.current_position or 'sem posição atual'}'."
+            self.save()
+        return self.profile_resume
 
     def key_skills(self) -> List[str]:
         """
