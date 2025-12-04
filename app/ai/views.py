@@ -77,6 +77,16 @@ class QuerieViewSet(viewsets.ModelViewSet):
         final = []
         for item in ordered:
             cand = Candidate.objects.get(pk=item["candidate_id"])
+            files = FileCandidate.objects.filter(candidate=cand)
+            data_files = [
+                {
+                    "id": fc.file.id,
+                    "name": fc.file.name,
+                    "size_mb": fc.file.size_mb,
+                    "download_url": fc.file.download_url,   # <- agora funciona
+                }
+                for fc in files
+            ]
 
             final.append({
                 "id": cand.id,
@@ -85,6 +95,12 @@ class QuerieViewSet(viewsets.ModelViewSet):
                 "score": item["score"],
                 "key_skills": item["key_skills"],
                 "candidate_description": item["candidate_description"],
+                "birth_date": cand.birth_date,
+                "current_position": cand.current_position,
+                "years_experience": cand.years_experience,
+                "location": cand.location,
+                "phone": cand.phone,
+                "files_uploaded": data_files,
             })
 
         return ResponseDefault(

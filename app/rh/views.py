@@ -91,7 +91,15 @@ class FileViewSet(viewsets.ModelViewSet):
         # GPT EXTRACTION
         info_gpt = GPTClient().extract(file_obj.full_text)
         extracted_info["gpt_info"] = info_gpt
-
+        extracted_info["info"]["nome"] = info_gpt.get("name", extracted_info["info"]["nome"])
+        extracted_info["info"]["email"] = info_gpt.get("email", extracted_info["info"]["email"])
+        extracted_info["info"]["telefone"] = info_gpt.get("phone", extracted_info["info"]["telefone"])
+        extracted_info["info"]["cargo_atual"] = info_gpt.get("current_position", extracted_info["info"]["cargo_atual"])
+        extracted_info["info"]["habilidades"] = info_gpt.get("key_skills", extracted_info["info"]["habilidades"])
+        extracted_info["info"]["resumo"] = info_gpt.get("candidate_description", extracted_info["info"]["resumo"])
+        extracted_info["info"]["anos_experiencia"] = info_gpt.get("years_experience", extracted_info["info"]["anos_experiencia"])
+        extracted_info["info"]["location"] = info_gpt.get("location", extracted_info["info"]["location"])
+        extracted_info["info"]["email"] = extracted_info["info"]["email"].replace(" ", "")
         # marca como processado
         file_obj.processed = True
         file_obj.save()
