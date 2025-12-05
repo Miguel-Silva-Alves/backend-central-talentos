@@ -55,6 +55,7 @@ class QuerieViewSet(viewsets.ModelViewSet):
             score = cosine_sim(query_emb, file.embedding)
 
             response_list.append({
+                "candidate_id": link.candidate.id,
                 "file_id": file.id,
                 "key_skills": file.word_cloud[:5],
                 "score": score,
